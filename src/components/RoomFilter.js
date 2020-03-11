@@ -125,7 +125,6 @@ const RoomFilter = ({ rooms }) => {
             />
             <label htmlFor="breakfast">breakfast</label>
           </div>
-
           {/* end of extras */}
           {/* extras */}
           <div className="single-extra">

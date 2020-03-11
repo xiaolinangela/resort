@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import items from "./data";
+import Client from "./Contentful";
 
 const RoomContext = React.createContext();
 
@@ -20,22 +21,50 @@ class RoomProvider extends Component {
     pets: false
   };
 
+  getData = async () => {
+    try {
+      let response = await Client.getEntries({
+        content_type: "ResortRoom",
+        order: "sys.createdAt"
+      });
+      let rooms = this.formatData(response.items);
+      let featuredRooms = rooms.filter(room => room.featured === true);
+      let maxPrice = Math.max(...rooms.map(item => item.price));
+      let maxSize = Math.max(...rooms.map(item => item.size));
+      this.setState({
+        rooms,
+        featuredRooms,
+        sortedRooms: rooms,
+        loading: false,
+        price: maxPrice,
+        maxPrice,
+        maxSize
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   componentDidMount() {
-    let rooms = this.formatData(items);
-    // console.log(rooms);
-    let featuredRooms = rooms.filter(room => room.featured === true);
-    let maxPrice = Math.max(...rooms.map(item => item.price));
-    let maxSize = Math.max(...rooms.map(item => item.size));
-    this.setState({
-      rooms,
-      featuredRooms,
-      sortedRooms: rooms,
-      loading: false,
-      price: maxPrice,
-      maxPrice,
-      maxSize
-    });
+    this.getData();
   }
+
+  // componentDidMount() {
+  //   let rooms = this.formatData(items);
+  //   // console.log(rooms);
+  //   let featuredRooms = rooms.filter(room => room.featured === true);
+  //   let maxPrice = Math.max(...rooms.map(item => item.price));
+  //   let maxSize = Math.max(...rooms.map(item => item.size));
+  //   this.setState({
+  //     rooms,
+  //     featuredRooms,
+  //     sortedRooms: rooms,
+  //     loading: false,
+  //     price: maxPrice,
+  //     maxPrice,
+  //     maxSize
+  //   });
+  // }
 
   formatData(items) {
     let tempItems = items.map(item => {
@@ -94,15 +123,12 @@ class RoomProvider extends Component {
     if (capacity != 1) {
       tempRooms = tempRooms.filter(room => room.capacity >= capacity);
     }
-
     //filter by price
     tempRooms = tempRooms.filter(room => room.price <= price);
-
     // filter by size
     tempRooms = tempRooms.filter(
       room => room.size >= minSize && room.size <= maxSize
     );
-
     // filter by breakfast
     if (breakfast) {
       tempRooms = tempRooms.filter(room => room.breakfast === true);
